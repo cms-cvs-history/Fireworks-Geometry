@@ -13,7 +13,7 @@
 //
 // Original Author:  Chris D Jones
 //         Created:  Wed Sep 26 08:27:23 EDT 2007
-// $Id: DumpGeom.cc,v 1.20 2009/12/14 22:22:49 wmtan Exp $
+// $Id: DumpGeom.cc,v 1.21 2010/01/17 09:00:30 innocent Exp $
 //
 //
 
@@ -90,6 +90,7 @@
 #include "Geometry/EcalCommonData/interface/EcalPreshowerNumberingScheme.h"
 
 #include "DataFormats/HcalDetId/interface/HcalDetId.h"
+#include "DataFormats/HcalDetId/interface/HcalSubdetector.h"
 #include "DataFormats/EcalDetId/interface/EcalSubdetector.h"
 #include "DataFormats/EcalDetId/interface/EBDetId.h"
 #include "DataFormats/EcalDetId/interface/EEDetId.h"
@@ -216,7 +217,7 @@ TGeoCombiTrans* createPlacement(const DDRotationMatrix& iRot,
 
 TGeoShape* 
 DumpGeom::createShape(const std::string& iName,
-	    const DDSolid& iSolid)
+		      const DDSolid& iSolid)
 {
    TGeoShape* rSolid= nameToShape_[iName];
    if(0==rSolid) {
@@ -619,7 +620,8 @@ void DumpGeom::mapTrackerGeometry(const DDCompactView& cview,
   DDExpandedView expv(cview);
   int id;
   for ( ; git != egit; ++git ) {
-    expv.goTo( (*git)->navpos() );
+    //    expv.goTo( (*git)->navpos() );
+    expv.goTo( (*git)->navType() );
 
     std::stringstream s;
     s << "/cms:World_1";
@@ -755,7 +757,7 @@ void DumpGeom::mapEcalGeometry(const DDCompactView& cview,
 
   // preshower
   {
-  const CaloSubdetectorGeometry* geom=cg.getSubdetectorGeometry(DetId::Ecal, EcalPreshower);
+    const CaloSubdetectorGeometry* geom=cg.getSubdetectorGeometry(DetId::Ecal, EcalPreshower);
     // This code comes from CaloGeometryLoader and must be updated when CaloGeometryLoader changes.
     // it is cut-pasted (logic wise).
     DDSpecificsFilter filter;
@@ -805,17 +807,50 @@ void DumpGeom::mapEcalGeometry(const DDCompactView& cview,
     }
 
   }
+  // HcalBarrel
+  {
+    std::vector<DetId> ids = cg.getValidDetIds(DetId::Hcal, HcalBarrel); //HB
+    for(std::vector<DetId>::const_iterator id = ids.begin(), idEnd = ids.end(); id != idEnd; ++id){
+      const CaloCellGeometry::CornersVec& cor (cg.getSubdetectorGeometry(*id)->getGeometry(*id)->getCorners());
+      idToName_[id->rawId()].fillPoints(cor.begin(),cor.end());
+    }
+  }
+  // HcalEndcap
+  {
+    std::vector<DetId> ids = cg.getValidDetIds(DetId::Hcal, HcalEndcap); //HE
+    for(std::vector<DetId>::const_iterator id = ids.begin(), idEnd = ids.end(); id != idEnd; ++id){
+      const CaloCellGeometry::CornersVec& cor (cg.getSubdetectorGeometry(*id)->getGeometry(*id)->getCorners());
+      idToName_[id->rawId()].fillPoints(cor.begin(),cor.end());
+    }
+  }
+  // HcalOuter
+  {
+    std::vector<DetId> ids = cg.getValidDetIds(DetId::Hcal, HcalOuter); //HO
+    for(std::vector<DetId>::const_iterator id = ids.begin(), idEnd = ids.end(); id != idEnd; ++id){
+      const CaloCellGeometry::CornersVec& cor (cg.getSubdetectorGeometry(*id)->getGeometry(*id)->getCorners());
+      idToName_[id->rawId()].fillPoints(cor.begin(),cor.end());
+    }
+  }
+  // HcalForward
+  {
+    std::vector<DetId> ids = cg.getValidDetIds(DetId::Hcal, HcalForward); //HF
+    for(std::vector<DetId>::const_iterator id = ids.begin(), idEnd = ids.end(); id != idEnd; ++id){
+      const CaloCellGeometry::CornersVec& cor (cg.getSubdetectorGeometry(*id)->getGeometry(*id)->getCorners());
+      idToName_[id->rawId()].fillPoints(cor.begin(),cor.end());
+    }
+  }
+
   // Fill reco geometry
   {
     std::vector<DetId> ids = cg.getValidDetIds(DetId::Ecal, EcalBarrel);//EB
-    for(std::vector<DetId>::const_iterator id = ids.begin(); id != ids.end(); ++id){
+    for(std::vector<DetId>::const_iterator id = ids.begin(), idEnd = ids.end(); id != idEnd; ++id){
       const CaloCellGeometry::CornersVec& cor (cg.getSubdetectorGeometry(*id)->getGeometry(*id)->getCorners()) ;
       idToName_[id->rawId()].fillPoints(cor.begin(),cor.end());
     }
   }
   {
     std::vector<DetId> ids = cg.getValidDetIds(DetId::Ecal, EcalEndcap);//EE
-    for(std::vector<DetId>::const_iterator id = ids.begin(); id != ids.end(); ++id){
+    for(std::vector<DetId>::const_iterator id = ids.begin(), idEnd = ids.end(); id != idEnd; ++id){
       const CaloCellGeometry::CornersVec& cor (cg.getSubdetectorGeometry(*id)->getGeometry(*id)->getCorners()) ;
       idToName_[id->rawId()].fillPoints(cor.begin(),cor.end());
     }
