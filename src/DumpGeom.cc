@@ -13,7 +13,7 @@
 //
 // Original Author:  Chris D Jones
 //         Created:  Wed Sep 26 08:27:23 EDT 2007
-// $Id: DumpGeom.cc,v 1.21 2010/01/17 09:00:30 innocent Exp $
+// $Id: DumpGeom.cc,v 1.21.2.1 2010/02/22 16:34:06 yana Exp $
 //
 //
 
@@ -850,6 +850,13 @@ void DumpGeom::mapEcalGeometry(const DDCompactView& cview,
   }
   {
     std::vector<DetId> ids = cg.getValidDetIds(DetId::Ecal, EcalEndcap);//EE
+    for(std::vector<DetId>::const_iterator id = ids.begin(), idEnd = ids.end(); id != idEnd; ++id){
+      const CaloCellGeometry::CornersVec& cor (cg.getSubdetectorGeometry(*id)->getGeometry(*id)->getCorners()) ;
+      idToName_[id->rawId()].fillPoints(cor.begin(),cor.end());
+    }
+  }
+  {
+    std::vector<DetId> ids = cg.getValidDetIds(DetId::Ecal, EcalPreshower);//ES
     for(std::vector<DetId>::const_iterator id = ids.begin(), idEnd = ids.end(); id != idEnd; ++id){
       const CaloCellGeometry::CornersVec& cor (cg.getSubdetectorGeometry(*id)->getGeometry(*id)->getCorners()) ;
       idToName_[id->rawId()].fillPoints(cor.begin(),cor.end());
